@@ -4,13 +4,16 @@
   "description": "This is media soup backend server made with express to support multiple device connect through webRTC",
   "main": "index.js",
   "scripts": {
+    "nodemon": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Shivam Shukla",
   "license": "ISC",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.21.2",
     "mediasoup": "^3.15.3",
+    "nodemon": "^3.1.9",
     "socket.io": "^4.8.1"
   }
 }
