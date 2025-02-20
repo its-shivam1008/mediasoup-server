@@ -6,32 +6,48 @@ const mediasoup = require("mediasoup");
 
 const app = express();
 app.use(cors({
-    origin: 'http://localhost:3000',  // Frontend URL
+    origin: 'http://localhost:3000',
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type'],
     credentials: true
-  }));
+}));
+
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-      origin: 'http://localhost:3000', // Frontend URL
-      methods: ['GET', 'POST'],
-    }
-  });
+        origin: "http://localhost:3000", // Allow frontend origin
+        methods: ["GET", "POST"],
+        credentials: true
+    },
+    transports: ["websocket", "polling"] // Ensure both WebSocket and polling are enabled
+});
 
 let worker;
 let rooms = {}; // Store active rooms
 
 const createWorker = async () => {
-    worker = await mediasoup.createWorker();
-    console.log("Mediasoup Worker Created");
+    try {
+        worker = await mediasoup.createWorker({
+            logLevel: "debug",
+            rtcMinPort: 20000,
+            rtcMaxPort: 21000
+        });
+        console.log("✅ Mediasoup Worker Created");
+    } catch (error) {
+        console.error("❌ Failed to create Mediasoup Worker:", error);
+    }
 };
 createWorker();
+
 
 io.on("connection", (socket) => {
     console.log(`User connected: ${socket.id}`);
 
     socket.on("joinRoom", async ({ roomId }, callback) => {
+        if (!worker) {
+            console.error("❌ Worker is not initialized yet!");
+            return callback({ error: "Mediasoup worker is not ready" });
+        }
         if (!rooms[roomId]) {
             rooms[roomId] = {
                 router: await worker.createRouter({
@@ -52,7 +68,7 @@ io.on("connection", (socket) => {
         if (!room) return;
 
         const transport = await room.router.createWebRtcTransport({
-            listenIps: [{ ip: "0.0.0.0", announcedIp: " 192.168.31.76" }], // Replace with actual IP
+            listenIps: [{ ip: "0.0.0.0", announcedIp: "192.168.31.76" }], // Replace with your actual IP
             enableUdp: true,
             enableTcp: true,
         });
@@ -67,17 +83,34 @@ io.on("connection", (socket) => {
         });
     });
 
+    socket.on("connectTransport", ({ transportId, dtlsParameters }) => {
+        for (const roomId in rooms) {
+            const room = rooms[roomId];
+            if (room) {
+                const transport = room.users[socket.id]?.transports.find((t) => t.id === transportId);
+                if (transport) transport.connect({ dtlsParameters });
+            }
+        }
+    });
+
     socket.on("produce", async ({ roomId, transportId, kind, rtpParameters }, callback) => {
         const room = rooms[roomId];
-        if (!room) return;
-
-        const producer = await room.users[socket.id].transports.find((t) => t.id === transportId).produce({ kind, rtpParameters });
+        const producer = await room.users[socket.id].transports
+            .find(t => t.id === transportId)
+            .produce({ kind, rtpParameters });
+    
         room.users[socket.id].producers.push(producer);
-
+    
+        console.log(`✅ New Producer Created: ${producer.id}`); // DEBUG
+    
+        // Notify other users in the room about this new producer
         socket.broadcast.to(roomId).emit("newProducer", { producerId: producer.id });
-
+        console.log("🚀 Broadcasting new producer:", producer.id);
         callback({ id: producer.id });
     });
+    
+
+    
 
     socket.on("consume", async ({ roomId, producerId, transportId, rtpCapabilities }, callback) => {
         const room = rooms[roomId];
@@ -87,7 +120,10 @@ io.on("connection", (socket) => {
             return callback({ error: "Cannot consume" });
         }
 
-        const consumer = await room.users[socket.id].transports.find((t) => t.id === transportId).consume({
+        const transport = room.users[socket.id].transports.find((t) => t.id === transportId);
+        if (!transport) return;
+
+        const consumer = await transport.consume({
             producerId,
             rtpCapabilities,
             paused: false,
@@ -101,6 +137,7 @@ io.on("connection", (socket) => {
             kind: consumer.kind,
             rtpParameters: consumer.rtpParameters,
         });
+        consumer.resume();
     });
 
     socket.on("disconnect", () => {
@@ -109,12 +146,13 @@ io.on("connection", (socket) => {
             if (rooms[roomId].users[socket.id]) {
                 delete rooms[roomId].users[socket.id];
                 if (Object.keys(rooms[roomId].users).length === 0) {
-                    delete rooms[roomId]; // Remove empty rooms
+                    delete rooms[roomId];
                 }
             }
         }
     });
 });
+
 
 server.listen(5000, () => {
     console.log("Server running on http://localhost:5000");
