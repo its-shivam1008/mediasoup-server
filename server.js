@@ -6,7 +6,7 @@ const mediasoup = require("mediasoup");
 
 const app = express();
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: 'http://localhost:5173',
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type'],
     credentials: true
@@ -15,7 +15,7 @@ app.use(cors({
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-        origin: "http://localhost:3000", // Allow frontend origin
+        origin: "http://localhost:5173", // Allow frontend origin
         methods: ["GET", "POST"],
         credentials: true
     },
@@ -60,6 +60,7 @@ io.on("connection", (socket) => {
             };
         }
         rooms[roomId].users[socket.id] = { transports: [], producers: [], consumers: [] };
+        socket.join(roomId);
         callback({ routerRtpCapabilities: rooms[roomId].router.rtpCapabilities });
     });
 
@@ -104,13 +105,13 @@ io.on("connection", (socket) => {
         console.log(`✅ New Producer Created: ${producer.id}`); // DEBUG
     
         // Notify other users in the room about this new producer
-        socket.broadcast.to(roomId).emit("newProducer", { producerId: producer.id });
-        console.log("🚀 Broadcasting new producer:", producer.id);
+        socket.to(roomId).emit("newProducer", producer.id); //  removed broad cast
+        console.log("🚀 Broadcasting new producer:", producer.id, "-to room-", roomId);
         callback({ id: producer.id });
     });
     
 
-    
+
 
     socket.on("consume", async ({ roomId, producerId, transportId, rtpCapabilities }, callback) => {
         const room = rooms[roomId];
