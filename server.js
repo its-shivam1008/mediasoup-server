@@ -15,15 +15,15 @@ app.use(cors({
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-        origin: "http://localhost:5173", // Allow frontend origin
+        origin: "http://localhost:5173",
         methods: ["GET", "POST"],
         credentials: true
     },
-    transports: ["websocket", "polling"] // Ensure both WebSocket and polling are enabled
+    transports: ["websocket", "polling"]
 });
 
 let worker;
-let rooms = {}; // Store active rooms
+let rooms = {};
 
 const createWorker = async () => {
     try {
@@ -38,7 +38,6 @@ const createWorker = async () => {
     }
 };
 createWorker();
-
 
 io.on("connection", (socket) => {
     console.log(`User connected: ${socket.id}`);
@@ -57,11 +56,19 @@ io.on("connection", (socket) => {
                     ],
                 }),
                 users: {},
+                producers: new Map(),
             };
         }
         rooms[roomId].users[socket.id] = { transports: [], producers: [], consumers: [] };
         socket.join(roomId);
-        callback({ routerRtpCapabilities: rooms[roomId].router.rtpCapabilities });
+
+        const existingProducerIds = Array.from(rooms[roomId].producers.keys());
+        console.log(`Sending existing producers to ${socket.id} in room ${roomId}:`, existingProducerIds);
+
+        callback({ 
+            routerRtpCapabilities: rooms[roomId].router.rtpCapabilities,
+            existingProducerIds
+        });
     });
 
     socket.on("createTransport", async ({ roomId }, callback) => {
@@ -69,7 +76,7 @@ io.on("connection", (socket) => {
         if (!room) return;
 
         const transport = await room.router.createWebRtcTransport({
-            listenIps: [{ ip: "0.0.0.0", announcedIp: "192.168.31.76" }], // Replace with your actual IP
+            listenIps: [{ ip: "0.0.0.0", announcedIp: "192.168.31.76" }],
             enableUdp: true,
             enableTcp: true,
         });
@@ -99,19 +106,15 @@ io.on("connection", (socket) => {
         const producer = await room.users[socket.id].transports
             .find(t => t.id === transportId)
             .produce({ kind, rtpParameters });
-    
+
         room.users[socket.id].producers.push(producer);
-    
-        console.log(`✅ New Producer Created: ${producer.id}`); // DEBUG
-    
-        // Notify other users in the room about this new producer
-        socket.to(roomId).emit("newProducer", producer.id); //  removed broad cast
+        room.producers.set(producer.id, socket.id);
+
+        console.log(`✅ New Producer Created: ${producer.id}`);
+        socket.to(roomId).emit("newProducer", producer.id);
         console.log("🚀 Broadcasting new producer:", producer.id, "-to room-", roomId);
         callback({ id: producer.id });
     });
-    
-
-
 
     socket.on("consume", async ({ roomId, producerId, transportId, rtpCapabilities }, callback) => {
         const room = rooms[roomId];
@@ -138,13 +141,15 @@ io.on("connection", (socket) => {
             kind: consumer.kind,
             rtpParameters: consumer.rtpParameters,
         });
-        consumer.resume();
     });
 
     socket.on("disconnect", () => {
         console.log(`User disconnected: ${socket.id}`);
         for (const roomId in rooms) {
             if (rooms[roomId].users[socket.id]) {
+                rooms[roomId].users[socket.id].producers.forEach(producer => {
+                    rooms[roomId].producers.delete(producer.id);
+                });
                 delete rooms[roomId].users[socket.id];
                 if (Object.keys(rooms[roomId].users).length === 0) {
                     delete rooms[roomId];
@@ -153,7 +158,6 @@ io.on("connection", (socket) => {
         }
     });
 });
-
 
 server.listen(5000, () => {
     console.log("Server running on http://localhost:5000");
