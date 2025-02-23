@@ -76,7 +76,7 @@ io.on("connection", (socket) => {
         if (!room) return;
 
         const transport = await room.router.createWebRtcTransport({
-            listenIps: [{ ip: "0.0.0.0", announcedIp: "192.168.31.76" }],
+            listenIps: [{ ip: "0.0.0.0", announcedIp: "192.168.143.76" }],
             enableUdp: true,
             enableTcp: true,
         });
@@ -143,16 +143,57 @@ io.on("connection", (socket) => {
         });
     });
 
+    // New: Handle exitRoom event
+    socket.on("exitRoom", ({ roomId, producerIds }) => {
+        const room = rooms[roomId];
+        if (!room) return;
+
+        console.log(`User ${socket.id} exiting room ${roomId} with producers:`, producerIds);
+
+        // Notify other clients in the room about each producer that’s leaving
+        producerIds.forEach((producerId) => {
+            socket.to(roomId).emit("participantLeft", producerId);
+            room.producers.delete(producerId); // Clean up producer from room
+            console.log(`Notified room ${roomId} that producer ${producerId} left`);
+        });
+
+        // Clean up user data
+        room.users[socket.id].transports.forEach(t => t.close());
+        room.users[socket.id].producers.forEach(p => p.close());
+        room.users[socket.id].consumers.forEach(c => c.close());
+        delete room.users[socket.id];
+
+        // Remove socket from room and delete room if empty
+        socket.leave(roomId);
+        if (Object.keys(room.users).length === 0) {
+            delete rooms[roomId];
+            console.log(`Room ${roomId} deleted as it is now empty`);
+        }
+    });
+
     socket.on("disconnect", () => {
         console.log(`User disconnected: ${socket.id}`);
         for (const roomId in rooms) {
-            if (rooms[roomId].users[socket.id]) {
-                rooms[roomId].users[socket.id].producers.forEach(producer => {
-                    rooms[roomId].producers.delete(producer.id);
+            const room = rooms[roomId];
+            if (room && room.users[socket.id]) {
+                const producerIds = room.users[socket.id].producers.map(p => p.id);
+                // Notify other clients about the disconnect
+                producerIds.forEach((producerId) => {
+                    socket.to(roomId).emit("participantLeft", producerId);
+                    room.producers.delete(producerId);
+                    console.log(`Notified room ${roomId} that producer ${producerId} left due to disconnect`);
                 });
-                delete rooms[roomId].users[socket.id];
-                if (Object.keys(rooms[roomId].users).length === 0) {
+
+                // Clean up user resources
+                room.users[socket.id].transports.forEach(t => t.close());
+                room.users[socket.id].producers.forEach(p => p.close());
+                room.users[socket.id].consumers.forEach(c => c.close());
+                delete room.users[socket.id];
+
+                // Delete room if empty
+                if (Object.keys(room.users).length === 0) {
                     delete rooms[roomId];
+                    console.log(`Room ${roomId} deleted as it is now empty`);
                 }
             }
         }
