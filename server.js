@@ -1,3 +1,4 @@
+require('dotenv').config();
 const cors = require("cors");
 const express = require("express");
 const http = require("http");
@@ -76,7 +77,7 @@ io.on("connection", (socket) => {
         if (!room) return;
 
         const transport = await room.router.createWebRtcTransport({
-            listenIps: [{ ip: "0.0.0.0", announcedIp: "192.168.116.76" }],
+            listenIps: [{ ip: "0.0.0.0", announcedIp: `${process.env.ANNOUNCE_IP}` }],
             enableUdp: true,
             enableTcp: true,
         });
