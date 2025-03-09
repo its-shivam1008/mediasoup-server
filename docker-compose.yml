@@ -2,7 +2,7 @@ version: "3.4"
 
 services:
   postgres:
-    container_name: threads-db
+    container_name: mediasoup-express-db
     image: postgres
     ports: 
       - 5432:5432
@@ -10,8 +10,8 @@ services:
       - postgres_data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_DB: threads
-      POSTGRES_PASSWORD: threads
+      POSTGRES_DB: mediasoup-express
+      POSTGRES_PASSWORD: mediasoup-express
 
 volumes:
   postgres_data:
