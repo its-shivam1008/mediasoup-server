@@ -4,6 +4,8 @@ const express = require("express");
 const http = require("http");
 const socketIo = require("socket.io");
 const mediasoup = require("mediasoup");
+const studentRoutes = require("./build/routes/student");
+const bodyParser = require("body-parser");
 
 const app = express();
 app.use(cors({
@@ -12,6 +14,10 @@ app.use(cors({
     allowedHeaders: ['Content-Type'],
     credentials: true
 }));
+app.use(bodyParser.json());
+
+app.use('/student', studentRoutes);
+
 
 const server = http.createServer(app);
 const io = socketIo(server, {
