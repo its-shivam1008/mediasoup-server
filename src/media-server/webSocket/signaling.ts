@@ -1,9 +1,13 @@
 // import { io } from "../server";
+import { Socket } from "socket.io";
+import { JoinCallbackFunctionResponse, CreateTransportCallbackFunctionResponse, ProduceCallbackFunctionResponse, ConsumeCallbackFunctionResponse } from "../../types/CallbackResponse";
 import { rooms, worker} from "../mediasoupWorker";
+import { DtlsParameters } from "mediasoup/node/lib/WebRtcTransportTypes";
+import { Room, RoomUser } from "../../types/Rooms";
+import { MediaKind, RtpCapabilities, RtpParameters } from "mediasoup/node/lib/rtpParametersTypes";
 
 
-
-export const joinRoom = async ({ roomId }:{roomId:string}, callback) => {
+export const joinRoom = async ({ roomId }:{roomId:string}, socket:Socket, callback:JoinCallbackFunctionResponse) => {
     if (!worker) {
         console.error("❌ Worker is not initialized yet!");
         return callback({ error: "Mediasoup worker is not ready" });
@@ -32,7 +36,7 @@ export const joinRoom = async ({ roomId }:{roomId:string}, callback) => {
     });
 }
 
-export const createTransport = async ({ roomId }, callback) => {
+export const createTransport = async ({ roomId }:{roomId:string}, socket:Socket, callback:CreateTransportCallbackFunctionResponse) => {
     const room = rooms[roomId];
     if (!room) return;
 
@@ -52,7 +56,7 @@ export const createTransport = async ({ roomId }, callback) => {
     });
 }
 
-export const connectTransport = ({ transportId, dtlsParameters }) => {
+export const connectTransport = ({ transportId, dtlsParameters }:{ transportId:string, dtlsParameters:DtlsParameters }, socket:Socket) => {
     for (const roomId in rooms) {
         const room = rooms[roomId];
         if (room) {
@@ -62,10 +66,10 @@ export const connectTransport = ({ transportId, dtlsParameters }) => {
     }
 }
 
-export const produce = async ({ roomId, transportId, kind, rtpParameters }, callback) => {
-    const room = rooms[roomId];
+export const produce = async ({ roomId, transportId, kind, rtpParameters }:{ roomId:string, transportId:string, kind:MediaKind, rtpParameters:RtpParameters }, socket:Socket, callback:ProduceCallbackFunctionResponse) => {
+    const room:any = rooms[roomId];
     const producer = await room.users[socket.id].transports
-        .find(t => t.id === transportId)
+        .find((t:any) => t.id === transportId)
         .produce({ kind, rtpParameters });
 
     room.users[socket.id].producers.push(producer);
@@ -77,7 +81,7 @@ export const produce = async ({ roomId, transportId, kind, rtpParameters }, call
     callback({ id: producer.id });
 }
 
-export const consume = async ({ roomId, producerId, transportId, rtpCapabilities }, callback) => {
+export const consume = async ({ roomId, producerId, transportId, rtpCapabilities }:{ roomId:string, producerId:string, transportId:string, rtpCapabilities:RtpCapabilities }, socket:Socket, callback:ConsumeCallbackFunctionResponse) => {
     const room = rooms[roomId];
     if (!room) return;
 
@@ -104,14 +108,15 @@ export const consume = async ({ roomId, producerId, transportId, rtpCapabilities
     });
 }
 
-export const exitRoom = ({ roomId, producerIds }) => {
+// producerIds is string[](array here) defined by me.
+export const exitRoom = ({ roomId, producerIds }:{ roomId:string, producerIds:string[] }, socket:Socket) => {
     const room = rooms[roomId];
     if (!room) return;
 
     console.log(`User ${socket.id} exiting room ${roomId} with producers:`, producerIds);
 
     // Notify other clients in the room about each producer that’s leaving
-    producerIds.forEach((producerId) => {
+    producerIds.forEach((producerId:string) => {
         socket.to(roomId).emit("participantLeft", producerId);
         room.producers.delete(producerId); // Clean up producer from room
         console.log(`Notified room ${roomId} that producer ${producerId} left`);
@@ -131,7 +136,7 @@ export const exitRoom = ({ roomId, producerIds }) => {
     }
 }
 
-export const disconnect = () => {
+export const disconnect = (socket:Socket) => {
     console.log(`User disconnected: ${socket.id}`);
     for (const roomId in rooms) {
         const room = rooms[roomId];

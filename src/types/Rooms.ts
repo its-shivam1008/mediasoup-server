@@ -1,13 +1,13 @@
 import { Consumer, Producer, Router } from "mediasoup/node/lib/types";
 import { WebRtcTransport } from "mediasoup/node/lib/WebRtcTransportTypes";
 
-interface RoomUser{
+export interface RoomUser{
     transports:WebRtcTransport[];
     producers:Producer[];
     consumers:Consumer[];
 }
 
-interface Room{
+export interface Room{
     router: Router;
     users: { [socketId: string]: RoomUser };
     producers: Map<string, string>;
