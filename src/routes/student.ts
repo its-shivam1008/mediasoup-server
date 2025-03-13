@@ -1,7 +1,7 @@
 import express, { Request, Response, Router } from "express";
 import { prismaClient } from "../lib/db";
 import bcrypt from "bcryptjs";
-import { ApiResponse } from "../types/ApiResponse";
+import { generateToken } from "../middlewares/JwtAuthMiddleware";
 const router = express.Router();
 
 const hashPassword = async (data:any)=>{
@@ -36,7 +36,16 @@ router.post('/signup', async(req, res) => {
         const data:any = req.body;
         await hashPassword(data);
         const response = await prismaClient.student.create({data:{...data}});
-        res.status(200).json({response});
+        const payload = {
+            id:response.id,
+            email:response.email,
+        }
+        const token = generateToken(payload);
+        res.status(200).cookie('uid', token, {
+        httpOnly: true,  
+        secure: process.env.NODE_ENV === 'production', // Use HTTPS in production
+        maxAge: 15 * 24 * 60 * 60 * 1000,  // Cookie expires in 15 days
+        }).json({message:"Token generated", success:true});
     }catch(err){
         res.status(500).json({message:"Internal server error", err});
     }
@@ -60,7 +69,16 @@ router.post('/login', async(req:Request, res:Response) =>{
             res.status(400).json({success:false, message:"Wrong password"});
             return;
         }
-        res.status(200).json({success:true, message:"Logged in success"});
+        const payload = {
+            id:response.id,
+            email:response.email,
+        }
+        const token = generateToken(payload);
+        res.status(200).cookie('uid', token, {
+        httpOnly: true,  
+        secure: process.env.NODE_ENV === 'production', // Use HTTPS in production
+        maxAge: 15 * 24 * 60 * 60 * 1000,  // Cookie expires in 15 days
+        }).json({message:"User logged in", success:true});
     }catch(err){
         res.status(500).json({success:false, message:"Internal server error"});
     }

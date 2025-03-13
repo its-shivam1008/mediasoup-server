@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 import http from "http";
 import bodyParser from "body-parser";
+import cookieParser from 'cookie-parser';
 import studentRoutes from "./routes/student";
 import { createWorkerFunc } from "./media-server/mediasoupWorker";
 import { Socket, Server as socketIo } from "socket.io";
@@ -20,6 +21,7 @@ app.use(cors({
 }));
 
 app.use(bodyParser.json());
+app.use(cookieParser());
 
 // routes are here
 app.use('/student', studentRoutes);
