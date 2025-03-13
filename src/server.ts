@@ -4,7 +4,7 @@ import express from "express";
 import http from "http";
 import bodyParser from "body-parser";
 import cookieParser from 'cookie-parser';
-import studentRoutes from "./routes/student";
+import userAuth from "./routes/Auth";
 import { createWorkerFunc } from "./media-server/mediasoupWorker";
 import { Socket, Server as socketIo } from "socket.io";
 import { connectTransport, consume, createTransport, disconnect, exitRoom, joinRoom, produce } from "./media-server/webSocket/signaling";
@@ -24,7 +24,7 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 // routes are here
-app.use('/student', studentRoutes);
+app.use('/user', userAuth);
 
 
 //------

@@ -1,7 +1,7 @@
 import express, { Request, Response, Router } from "express";
 import { prismaClient } from "../lib/db";
 import bcrypt from "bcryptjs";
-import { generateToken } from "../middlewares/JwtAuthMiddleware";
+import { generateToken, jwtAuthMiddleware } from "../middlewares/JwtAuthMiddleware";
 const router = express.Router();
 
 const hashPassword = async (data:any)=>{
@@ -79,6 +79,23 @@ router.post('/login', async(req:Request, res:Response) =>{
         secure: process.env.NODE_ENV === 'production', // Use HTTPS in production
         maxAge: 15 * 24 * 60 * 60 * 1000,  // Cookie expires in 15 days
         }).json({message:"User logged in", success:true});
+    }catch(err){
+        res.status(500).json({success:false, message:"Internal server error"});
+    }
+});
+
+router.get('/auth/me', jwtAuthMiddleware, async(req:Request, res:Response)=>{
+    try{
+        res.status(200).json({ success: true, message:"Cookie verified", user: (req as any).user });
+    }catch(err){
+        res.status(500).json({success:false, message:"Internal server error"});
+    }
+});
+
+router.post('/logout', async(req:Request, res:Response)=>{
+    try{
+        res.clearCookie("uid"); // Remove token cookie
+        res.status(200).json({ success: true, message: "Logged out" });
     }catch(err){
         res.status(500).json({success:false, message:"Internal server error"});
     }

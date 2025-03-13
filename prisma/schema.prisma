@@ -13,12 +13,71 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Student {
-  id String @id @default(uuid())
-  firstName String @map("first_name")
-  lastName String @map("last_name")
-  email String @unique
+enum UserRole {
+  STUDENT
+  TEACHER
+}
+
+model User {
+  id       String   @id @default(uuid())
+  name     String   @map("name")
+  role     UserRole @default(STUDENT)
+  email    String   @unique
   password String 
-  
+
+  student  Student?
+  teacher  Teacher?
+
+  @@map("users")
+}
+
+model Student {
+  id            String  @id @default(uuid()) @map("user_id")
+  user          User    @relation(fields: [id], references: [id])
+  joinedClasses ClassEnrollment[]
+  joinRequests  ClassJoinRequest[] // ✅ Back-relation to ClassJoinRequest
+
   @@map("students")
+}
+
+model Teacher {
+  id             String  @id @default(uuid()) @map("user_id")
+  user           User    @relation(fields: [id], references: [id])
+  createdClasses Class[]
+
+  @@map("teachers")
+}
+
+model Class {
+  id            String   @id @default(uuid())
+  name          String
+  description   String
+  createdBy     Teacher  @relation(fields: [createdById], references: [id])
+  createdById   String
+  joinedBy      ClassEnrollment[]
+  requestToJoin ClassJoinRequest[]
+  passcode      String
+
+  @@map("classes")
+}
+
+model ClassEnrollment {
+  id        String  @id @default(uuid())
+  student   Student @relation(fields: [studentId], references: [id])
+  studentId String
+  class     Class   @relation(fields: [classId], references: [id])
+  classId   String
+
+  @@map("class_enrollments")
+}
+
+model ClassJoinRequest {
+  id        String  @id @default(uuid())
+  student   Student @relation(fields: [studentId], references: [id]) // ✅ Only defined once
+  studentId String
+  class     Class   @relation(fields: [classId], references: [id])
+  classId   String
+  passcode  String
+
+  @@map("class_join_requests")
 }
