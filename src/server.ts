@@ -4,7 +4,7 @@ import express from "express";
 import http from "http";
 import bodyParser from "body-parser";
 import studentRoutes from "./routes/student";
-import { createWorker } from "./media-server/mediasoupWorker";
+import { createWorkerFunc } from "./media-server/mediasoupWorker";
 import { Socket, Server as socketIo } from "socket.io";
 import { connectTransport, consume, createTransport, disconnect, exitRoom, joinRoom, produce } from "./media-server/webSocket/signaling";
 
@@ -37,7 +37,7 @@ export const io = new socketIo(server, {
     transports: ["websocket", "polling"]
 });
 
-createWorker().then(() => {
+createWorkerFunc().then(() => {
     io.on("connection", (socket: Socket) => {
         console.log(`User connected: ${socket.id}`);
     

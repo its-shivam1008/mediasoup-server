@@ -1,13 +1,14 @@
 import mediasoup from "mediasoup";
+import { createWorker } from "mediasoup";
 import { Worker } from "mediasoup/node/lib/types";
 import { Rooms } from "../types/Rooms";
 
 export let worker:Worker;
 export let rooms:Rooms = {};
 
- export const createWorker = async () => {
+ export const createWorkerFunc = async () => {
     try {
-        worker = await mediasoup.createWorker({
+        worker = await createWorker({
             logLevel: "debug",
             rtcMinPort: 20000,
             rtcMaxPort: 21000
