@@ -35,7 +35,7 @@ model Student {
   id            String  @id @default(uuid()) @map("user_id")
   user          User    @relation(fields: [id], references: [id])
   joinedClasses ClassEnrollment[]
-  joinRequests  ClassJoinRequest[] // ✅ Back-relation to ClassJoinRequest
+  joinRequests  ClassJoinRequest[] 
 
   @@map("students")
 }
@@ -73,7 +73,7 @@ model ClassEnrollment {
 
 model ClassJoinRequest {
   id        String  @id @default(uuid())
-  student   Student @relation(fields: [studentId], references: [id]) // ✅ Only defined once
+  student   Student @relation(fields: [studentId], references: [id]) 
   studentId String
   class     Class   @relation(fields: [classId], references: [id])
   classId   String

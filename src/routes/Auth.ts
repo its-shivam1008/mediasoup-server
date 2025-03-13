@@ -35,7 +35,7 @@ router.post('/signup', async(req, res) => {
     try{
         const data:any = req.body;
         await hashPassword(data);
-        const response = await prismaClient.student.create({data:{...data}});
+        const response = await prismaClient.user.create({data:{...data}});
         const payload = {
             id:response.id,
             email:response.email,
@@ -60,7 +60,7 @@ router.post('/login', async(req:Request, res:Response) =>{
             res.status(404).json({success:false, message:"Email and passssword is needed"});
             return;
         }
-        const response = await prismaClient.student.findUnique({where:{email:email}});
+        const response = await prismaClient.user.findUnique({where:{email:email}});
         if(!response){
             res.status(404).json({success:false, message:"Unable to find user"});
             return;
