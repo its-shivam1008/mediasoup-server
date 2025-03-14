@@ -35,10 +35,12 @@ router.post('/signup', async(req, res) => {
     try{
         const data:any = req.body;
         await hashPassword(data);
+        
         const response = await prismaClient.user.create({data:{...data}});
         const payload = {
             id:response.id,
             email:response.email,
+            role:response.role
         }
         const token = generateToken(payload);
         res.status(200).cookie('uid', token, {
@@ -72,6 +74,7 @@ router.post('/login', async(req:Request, res:Response) =>{
         const payload = {
             id:response.id,
             email:response.email,
+            role:response.role
         }
         const token = generateToken(payload);
         res.status(200).cookie('uid', token, {
