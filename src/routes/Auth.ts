@@ -54,6 +54,22 @@ router.post('/signup', async(req, res) => {
         data.verifyCodeExpiry = verifyCodeExpiry;
 
         const response = await prismaClient.user.create({data:{...data}});
+
+        if (response.role === "TEACHER") {
+            await prismaClient.teacher.create({
+                data: {
+                    id: response.id,
+                },
+            });
+        }else{
+            await prismaClient.student.create({
+                data: {
+                    id: response.id,
+                },
+            });
+        }
+
+
         const payload = {
             id:response.id,
             email:response.email,
