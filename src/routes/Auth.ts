@@ -2,6 +2,7 @@ import express, { Request, Response, Router } from "express";
 import { prismaClient } from "../lib/db";
 import bcrypt from "bcryptjs";
 import { generateToken, jwtAuthMiddleware } from "../middlewares/JwtAuthMiddleware";
+import { sendVerificationEmail } from "../emails/verificationEmail";
 const router = express.Router();
 
 const hashPassword = async (data:any)=>{
@@ -31,11 +32,29 @@ router.get('/', async(req, res) => {
     res.status(200).send("Hellow from users");
 });
 
+// isVerrified, verifyCode, verifyCodeExpiry
+
 router.post('/signup', async(req, res) => {
     try{
         const data:any = req.body;
+
+        const isUserExist = await prismaClient.user.findUnique({where:{email:data.email}});
+        if(isUserExist){
+            res.status(400).json({success:false, isVerified:true, message:"User with this email already exists."});
+            return;
+        }
+
         await hashPassword(data);
-        
+
+        const verifyCode = Math.floor(100000+Math.random()*900000).toString();
+        const verifyCodeExpiry = new Date();
+        verifyCodeExpiry.setHours(verifyCodeExpiry.getHours()+1);
+        data.isVerified = false;
+        data.verifyCode = verifyCode;
+        data.verifyCodeExpiry = verifyCodeExpiry;
+
+
+
         const response = await prismaClient.user.create({data:{...data}});
         const payload = {
             id:response.id,
@@ -43,11 +62,14 @@ router.post('/signup', async(req, res) => {
             role:response.role
         }
         const token = generateToken(payload);
+
+        sendVerificationEmail(response.email, response.name, response.verifyCode);
+
         res.status(200).cookie('uid', token, {
         httpOnly: true,  
-        secure: process.env.NODE_ENV === 'production', // Use HTTPS in production
-        maxAge: 15 * 24 * 60 * 60 * 1000,  // Cookie expires in 15 days
-        }).json({message:"Token generated", success:true});
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 15 * 24 * 60 * 60 * 1000,  
+        }).json({message:"Verification email has been sent and cookies received", success:true});
     }catch(err){
         res.status(500).json({message:"Internal server error", err});
     }
