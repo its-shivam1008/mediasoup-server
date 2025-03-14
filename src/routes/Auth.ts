@@ -40,7 +40,7 @@ router.post('/signup', async(req, res) => {
 
         const isUserExist = await prismaClient.user.findUnique({where:{email:data.email}});
         if(isUserExist){
-            res.status(400).json({success:false, isVerified:true, message:"User with this email already exists."});
+            res.status(400).json({success:false, message:"User with this email already exists."});
             return;
         }
 
@@ -53,8 +53,6 @@ router.post('/signup', async(req, res) => {
         data.verifyCode = verifyCode;
         data.verifyCodeExpiry = verifyCodeExpiry;
 
-
-
         const response = await prismaClient.user.create({data:{...data}});
         const payload = {
             id:response.id,
@@ -63,7 +61,11 @@ router.post('/signup', async(req, res) => {
         }
         const token = generateToken(payload);
 
-        sendVerificationEmail(response.email, response.name, response.verifyCode);
+        const isEmailSent = await sendVerificationEmail(response.email, response.name, response.verifyCode);
+        if(!isEmailSent.success){
+            res.status(400).json({success:false, message:isEmailSent.message});
+            return;
+        }
 
         res.status(200).cookie('uid', token, {
         httpOnly: true,  
@@ -71,7 +73,7 @@ router.post('/signup', async(req, res) => {
         maxAge: 15 * 24 * 60 * 60 * 1000,  
         }).json({message:"Verification email has been sent and cookies received", success:true});
     }catch(err){
-        res.status(500).json({message:"Internal server error", err});
+        res.status(500).json({message:"Internal server error", success:false, err});
     }
 
 });
