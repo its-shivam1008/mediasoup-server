@@ -40,7 +40,7 @@ router.post('/signup', async(req, res) => {
 
         const isUserExist = await prismaClient.user.findUnique({where:{email:data.email}});
         if(isUserExist){
-            res.status(400).json({success:false, message:"User with this email already exists."});
+            res.status(409).json({success:false, message:"User with this email already exists."});
             return;
         }
 
