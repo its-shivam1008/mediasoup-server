@@ -91,6 +91,17 @@ router.get('/enroll-class/:classId', async(req:Request, res:Response)=>{
                         id:true,
                         description:true,
                         name:true
+                    },
+                    include:{
+                        createdBy:{
+                            include:{
+                                user:{
+                                    select:{
+                                        name:true
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
