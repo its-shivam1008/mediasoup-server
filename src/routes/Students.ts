@@ -73,6 +73,39 @@ router.get('/join-request', async(req:Request, res:Response) => {
     }
 });
 
+router.get('/enroll-class/:classId', async(req:Request, res:Response)=>{
+    try{
+        const classId = req.params.classId;
+
+        const user = req.user;
+        if(user.role != 'STUDENT'){
+            res.status(405).json({success:false, message:"Not allowed, the user is not student"});
+            return;
+        }
+
+        const enrollClass = await prismaClient.classEnrollment.findMany({
+            where:{classId:classId, studentId:user.id},
+            include:{
+                class:{
+                    select:{
+                        id:true,
+                        description:true,
+                        name:true
+                    }
+                }
+            }
+        })
+
+        if(!enrollClass){
+            res.status(404).json({success:false, message:"Enrolled class not found"})
+            return;
+        }
+
+        res.status(200).json({success:true, message:"Enrolled class fetched", enrollClass});
+    }catch(err){
+        res.status(500).json({success:false, message:"Internal server error"});
+    }
+})
 
 router.get('/enroll-classes', async(req:Request, res:Response) => {
     try{
