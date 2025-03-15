@@ -54,7 +54,8 @@ router.get('/join-request', async(req:Request, res:Response) => {
                 class: {
                     select: {
                         name: true,
-                        description: true
+                        description: true,
+                        id:true
                     }
                 }
             }
@@ -87,7 +88,8 @@ router.get('/enroll-classes', async(req:Request, res:Response) => {
                 class:{
                     select:{
                         name:true,
-                        description:true
+                        description:true,
+                        id:true
                     }
                 }
             }

@@ -119,5 +119,31 @@ router.delete('delete-class', async(req:Request, res:Response)=>{
     }
 })
 
+router.put('/enroll-student', async(req:Request, res:Response)=>{
+    try{
+        const data = req.body;
+
+        const user = req.user;
+        if(user.role != 'TEACHER'){
+            res.status(405).json({success:false, message:"Not allowed, the user is not teacher"});
+            return;
+        }
+        
+        const removeStuFromClassJoinRequest = await prismaClient.classJoinRequest.deleteMany({where:{classId:data.classId, studentId:data.studentId}}); // I am using delete many here because I know there is only one row which exist where the classId and the studntId are the passed ones and also I didn't set the primary composite key so I can't use the delete function therefore I am using deleteMany.
+        const addStuToClassEnrollment = await prismaClient.classEnrollment.create({data:{
+            student:{connect: data.studentID},
+            class:{connect: data.classId}
+        }});
+
+        if(!removeStuFromClassJoinRequest || !addStuToClassEnrollment){
+            res.status(400).json({success:false, message:"Unable to enroll the student"});
+            return;
+        }
+
+        res.status(200).json({success:true, message:"Student enrolled"});
+    }catch(err){
+        res.status(500).json({success:false, message:"Internal server error"});
+    }
+});
 
 export default router;
