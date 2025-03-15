@@ -5,9 +5,12 @@ import http from "http";
 import bodyParser from "body-parser";
 import cookieParser from 'cookie-parser';
 import userAuth from "./routes/Auth";
+import student from "./routes/Students";
+import teacher from "./routes/Teachers";
 import { createWorkerFunc } from "./media-server/mediasoupWorker";
 import { Socket, Server as socketIo } from "socket.io";
 import { connectTransport, consume, createTransport, disconnect, exitRoom, joinRoom, produce } from "./media-server/webSocket/signaling";
+import { jwtAuthMiddleware } from "./middlewares/JwtAuthMiddleware";
 
 
 dotenv.config();
@@ -25,6 +28,8 @@ app.use(cookieParser());
 
 // routes are here
 app.use('/user', userAuth);
+app.use('/student', jwtAuthMiddleware, student);
+app.use('/teacher', jwtAuthMiddleware, teacher);
 
 
 //------

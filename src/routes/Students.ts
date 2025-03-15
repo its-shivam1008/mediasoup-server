@@ -1,10 +1,9 @@
 import express, { Request, Response, Router } from "express";
 import { prismaClient } from "../lib/db";
-import { jwtAuthMiddleware } from "../middlewares/JwtAuthMiddleware";
 
 const router = express.Router();
 
-router.post('/join-request', jwtAuthMiddleware, async(req:Request, res:Response)=>{
+router.post('/join-request', async(req:Request, res:Response)=>{
     try{
         const data = req.body;
 
@@ -41,7 +40,7 @@ router.post('/join-request', jwtAuthMiddleware, async(req:Request, res:Response)
     }
 });
 
-router.get('/join-request', jwtAuthMiddleware, async(req:Request, res:Response) => {
+router.get('/join-request', async(req:Request, res:Response) => {
     try{
         const user = req.user;
         if(user.role != 'STUDENT'){
@@ -49,7 +48,17 @@ router.get('/join-request', jwtAuthMiddleware, async(req:Request, res:Response) 
             return;
         }
 
-        const joinRequestClasses = await prismaClient.classJoinRequest.findMany({where:{studentId: user.id}});
+        const joinRequestClasses = await prismaClient.classJoinRequest.findMany({
+            where:{studentId:user.id},
+            include: {
+                class: {
+                    select: {
+                        name: true,
+                        description: true
+                    }
+                }
+            }
+        });
 
         if(!joinRequestClasses){
             res.status(400).json({success:false, message:"No join requests"});
@@ -64,7 +73,7 @@ router.get('/join-request', jwtAuthMiddleware, async(req:Request, res:Response) 
 });
 
 
-router.get('/enroll-classes', jwtAuthMiddleware, async(req:Request, res:Response) => {
+router.get('/enroll-classes', async(req:Request, res:Response) => {
     try{
         const user = req.user;
         if(user.role != 'STUDENT'){
@@ -72,7 +81,17 @@ router.get('/enroll-classes', jwtAuthMiddleware, async(req:Request, res:Response
             return;
         }
 
-        const enrollClasses = await prismaClient.classEnrollment.findMany({where:{studentId: user.id}});
+        const enrollClasses = await prismaClient.classEnrollment.findMany({
+            where:{studentId:user.id},
+            include:{
+                class:{
+                    select:{
+                        name:true,
+                        description:true
+                    }
+                }
+            }
+        });
         if(!enrollClasses){
             res.status(400).json({success:false, message:"No enrolled classes"});
             return;
@@ -82,4 +101,8 @@ router.get('/enroll-classes', jwtAuthMiddleware, async(req:Request, res:Response
     }catch(err){
         res.status(500).json({success:false, message:"Internal server error"});
     }
-})
+});
+
+// delete the join request or enrollment from the class 
+
+export default router;
