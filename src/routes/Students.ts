@@ -106,5 +106,50 @@ router.get('/enroll-classes', async(req:Request, res:Response) => {
 });
 
 // delete the join request or enrollment from the class 
+router.delete('/enroll-class/:classId', async(req:Request, res:Response)=>{
+    try{
+        const classId = req.params.classId;
+
+        const user = req.user;
+        if(user.role != 'STUDENT'){
+            res.status(405).json({success:false, message:"Not allowed, the user is not student"});
+            return;
+        }
+
+        const removeStuFromEnrollClass = await prismaClient.classEnrollment.deleteMany({where:{classId:classId, studentId:user.id}});
+
+        if(!removeStuFromEnrollClass){
+            res.status(400).json({message:"Unable to remove the user from the class room"});
+            return;
+        }
+
+        res.status(200).json({message:"User removed from the class"});
+    }catch(err){
+        res.status(500).json({message:"Internal server error", success:false});
+    }
+});
+
+router.delete('/join-request/:classId', async(req:Request, res:Response)=>{
+    try{
+        const classId = req.params.classId;
+
+        const user = req.user;
+        if(user.role != 'STUDENT'){
+            res.status(405).json({success:false, message:"Not allowed, the user is not student"});
+            return;
+        }
+
+        const removeStuFromClassJoinRequest = await prismaClient.classJoinRequest.deleteMany({where:{classId:classId, studentId:user.id}});
+
+        if(!removeStuFromClassJoinRequest){
+            res.status(400).json({message:"Unable to withdraw join request"});
+            return;
+        }
+        
+        res.status(200).json({message:"Join request has been withdrawn"});
+    }catch(err){
+        res.status(500).json({message:"Internal server error", success:false});
+    }
+})
 
 export default router;
