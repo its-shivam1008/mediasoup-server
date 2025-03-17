@@ -25,8 +25,8 @@ router.post('/join-request', async(req:Request, res:Response)=>{
         }
 
         const joinRequest = await prismaClient.classJoinRequest.create({data:{
-            student: {connect: user.id},
-            class: {connect: data.classId},
+            studentId: user.id,
+            classId:data.classId,
             passcode: data.passcode
         }});
         if(!joinRequest){

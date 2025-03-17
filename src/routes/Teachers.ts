@@ -17,7 +17,7 @@ router.post('/create-class', async(req:Request, res:Response)=>{
             name:data.name,
             description:data.description,
             passcode:data.passcode,
-            createdBy:user.id
+            createdById:user.id
         }})
 
         if(!createClass){
@@ -27,7 +27,7 @@ router.post('/create-class', async(req:Request, res:Response)=>{
 
         res.status(200).json({success:true, message:"Class room created."});
     }catch(err){
-        res.status(500).json({success:false, message:"Internal server error"});
+        res.status(500).json({success:false, message:"Internal server error", err});
     }
 });
 
@@ -155,19 +155,25 @@ router.put('/enroll-student', async(req:Request, res:Response)=>{
         }
         
         const removeStuFromClassJoinRequest = await prismaClient.classJoinRequest.deleteMany({where:{classId:data.classId, studentId:data.studentId}}); // I am using delete many here because I know there is only one row which exist where the classId and the studntId are the passed ones and also I didn't set the primary composite key so I can't use the delete function therefore I am using deleteMany.
+        if(!removeStuFromClassJoinRequest){
+            res.status(400).json({success:false, message:"Unable to enroll the student"});
+            return;
+        }
+
+
         const addStuToClassEnrollment = await prismaClient.classEnrollment.create({data:{
-            student:{connect: data.studentID},
-            class:{connect: data.classId}
+            studentId:data.studentId,
+            classId:data.classId
         }});
 
-        if(!removeStuFromClassJoinRequest || !addStuToClassEnrollment){
+        if(!addStuToClassEnrollment){
             res.status(400).json({success:false, message:"Unable to enroll the student"});
             return;
         }
 
         res.status(200).json({success:true, message:"Student enrolled"});
     }catch(err){
-        res.status(500).json({success:false, message:"Internal server error"});
+        res.status(500).json({success:false, message:"Internal server error", err});
     }
 });
 
