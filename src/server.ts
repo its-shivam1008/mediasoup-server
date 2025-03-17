@@ -48,8 +48,8 @@ createWorkerFunc().then(() => {
     io.on("connection", (socket: Socket) => {
         console.log(`User connected: ${socket.id}`);
     
-        socket.on("joinRoom", async ({ roomId }, callback) => {
-            await joinRoom({ roomId }, socket, callback);
+        socket.on("joinRoom", async ({ roomId, userId, role}, callback) => {
+            await joinRoom({ roomId, userId, role}, socket, callback); // userId and role added
         });
     
         socket.on("createTransport", async ({ roomId }, callback) => {

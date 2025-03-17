@@ -5,9 +5,17 @@ import { rooms, worker} from "../mediasoupWorker";
 import { DtlsParameters } from "mediasoup/node/lib/WebRtcTransportTypes";
 import { Room, RoomUser } from "../../types/Rooms";
 import { MediaKind, RtpCapabilities, RtpParameters } from "mediasoup/node/lib/rtpParametersTypes";
+import { studentAuthorization } from "../../controller/StudentAuthorization";
 
 
-export const joinRoom = async ({ roomId }:{roomId:string}, socket:Socket, callback:JoinCallbackFunctionResponse) => {
+export const joinRoom = async ({ roomId, userId, role}:{roomId:string, userId:string, role:string}, socket:Socket, callback:JoinCallbackFunctionResponse) => {
+    // roomId will be same as classId of the class(id)
+    const isUserAllowedToJoin = await studentAuthorization(roomId, userId, role);
+    if(!isUserAllowedToJoin){
+        console.error("User not allowed");
+        return callback({ error: "User not allowed to join the room" });
+    }
+    // 
     if (!worker) {
         console.error("❌ Worker is not initialized yet!");
         return callback({ error: "Mediasoup worker is not ready" });
