@@ -84,11 +84,7 @@ router.post('/signup', async(req, res) => {
             return;
         }
 
-        res.status(200).cookie('uid', token, {
-        httpOnly: true,  
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 15 * 24 * 60 * 60 * 1000,  
-        }).json({message:"Verification email has been sent and cookies received", success:true});
+        res.status(200).json({message:"Verification email has been sent and cookies received", success:true, token});
     }catch(err){
         res.status(500).json({message:"Internal server error", success:false, err});
     }
@@ -118,11 +114,7 @@ router.post('/login', async(req:Request, res:Response) =>{
             role:response.role
         }
         const token = generateToken(payload);
-        res.status(200).cookie('uid', token, {
-        httpOnly: true,  
-        secure: process.env.NODE_ENV === 'production', // Use HTTPS in production
-        maxAge: 15 * 24 * 60 * 60 * 1000,  // Cookie expires in 15 days
-        }).json({message:"User logged in", success:true});
+        res.status(200).json({message:"User logged in", success:true, token});
     }catch(err){
         res.status(500).json({success:false, message:"Internal server error"});
     }
@@ -196,7 +188,7 @@ router.put('/resend-otp', async(req:Request, res:Response)=>{
 
 router.get('/auth/me', jwtAuthMiddleware, async(req:Request, res:Response)=>{
     try{
-        res.status(200).json({ success: true, message:"Cookie verified", user: (req as any).user });
+        res.status(200).json({ success: true, message:"Token verified", user: (req as any).user });
     }catch(err){
         res.status(500).json({success:false, message:"Internal server error"});
     }

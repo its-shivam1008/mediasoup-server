@@ -2,14 +2,12 @@ import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 
 export const jwtAuthMiddleware = (req:Request, res:Response, next:NextFunction) => {
-    const cookie = req.cookies;
-
-    if(!cookie){
-        res.status(401).json({success:false, message:"Cookie not found"});
+    const authorization = req.headers.authorization;
+    if(!authorization){
+        res.status(401).json({success:false, message:"Token not found"});
         return;
-    }
-
-    const token = cookie.uid;
+    }   
+    const token = authorization.split(' ')[1];
 
     if(!token){
         res.status(401).json({success:false, message:"Unauthorized"});
