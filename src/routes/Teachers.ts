@@ -111,7 +111,7 @@ router.get('/classes', async(req:Request, res:Response)=>{
     }
 });
 
-router.delete('delete-class/:classId', async(req:Request, res:Response)=>{
+router.delete('/delete-class/:classId', async(req:Request, res:Response)=>{
     try{
         const classId = req.params.classId;
 
@@ -130,9 +130,9 @@ router.delete('delete-class/:classId', async(req:Request, res:Response)=>{
             return;
         }
 
-        await prismaClient.classJoinRequest.deleteMany({where:{classId:classId}});
-        await prismaClient.classEnrollment.deleteMany({where:{classId:classId}});
-
+       await prismaClient.classJoinRequest.deleteMany({where:{classId:classId}});
+       await prismaClient.classEnrollment.deleteMany({where:{classId:classId}});
+    
         const deletedClass = await prismaClient.class.delete({ where: { id: classId } });
         if(!deletedClass){
             res.status(200).json({success:false, message:"Cannot delete the class room"});
