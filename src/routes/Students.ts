@@ -1,7 +1,82 @@
-import express, { Request, Response, Router } from "express";
+import express, { Request, Response } from "express";
 import { prismaClient } from "../lib/db";
 
 const router = express.Router();
+
+
+router.get('/get-class', async(req:Request, res:Response) => {
+    try{
+        const user = req.user;
+        if(user.role != 'STUDENT'){
+            res.status(405).json({success:false, message:"Not allowed, the user is not student"});
+            return;
+        }
+
+        const classRoom = await prismaClient.class.findMany({take:10, 
+            select:{
+                name:true,
+                description:true,
+                id:true,
+                createdBy:{
+                    include:{
+                        user:{
+                            select:{
+                                name:true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        if(!classRoom){
+            res.status(404).json({success:false, message:"Class room not found"});
+            return;
+        }
+
+        res.status(200).json({success:true, message:"Classes fetched", classRooms:classRoom});
+
+    }catch(err){
+        res.status(500).json({success:false, message:"Internal server error"});
+    }
+});
+
+router.get('/get-class/:id', async(req:Request, res:Response) => {
+    try{
+        const id = req.params.id;
+        const user = req.user;
+        if(user.role != 'STUDENT'){
+            res.status(405).json({success:false, message:"Not allowed, the user is not student"});
+            return;
+        }
+        const existingClass = await prismaClient.class.findUnique({
+            where: { id: id }, 
+            select:{
+                name:true,
+                description:true,
+                id:true,
+                createdBy:{
+                    include:{
+                        user:{
+                            select:{
+                                name:true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!existingClass) {
+            res.status(404).json({ success: false, message: "Class not found" });
+            return;
+        }
+
+        res.status(200).json({success:true, message:"Class room fetched", existingClass});        
+
+    }catch(err){
+        res.status(500).json({success:false, message:"Internal server error"});
+    }
+})
 
 router.post('/join-request', async(req:Request, res:Response)=>{
     try{
