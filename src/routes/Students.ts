@@ -157,6 +157,49 @@ router.get('/join-request', async(req:Request, res:Response) => {
     }
 });
 
+
+router.get('/search', async(req:Request, res:Response) => {
+    try{
+        const { query } = req.query;
+        if(!query){
+            res.status(404).json({success:false, message:"query parameter is required"});
+            return;
+        }
+
+        const anyClassFound = await prismaClient.class.findMany({where:{
+                OR:[
+                    {id:query.toString()},
+                    {name:query.toString()},
+                    {description:query.toString()}
+                ]
+            },
+            select:{
+                name:true,
+                description:true,
+                id:true,
+                createdBy:{
+                    include:{
+                        user:{
+                            select:{
+                                name:true
+                            }
+                        }
+                    }
+                }
+            }
+        })
+        if(!anyClassFound){
+            res.status(404).json({success:false, message:"No class room found"});
+        }
+
+        res.status(200).json({success:true, message:"Class rooms found", anyClassFound})
+
+    }catch(err){
+        res.status(500).json({success:false, message:"Internal server error"});
+    }
+})
+
+
 router.get('/enroll-class/:classId', async(req:Request, res:Response)=>{
     try{
         const classId = req.params.classId;
