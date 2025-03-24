@@ -157,7 +157,6 @@ router.get('/join-request', async(req:Request, res:Response) => {
     }
 });
 
-
 router.get('/search', async(req:Request, res:Response) => {
     try{
         const { query } = req.query;
@@ -169,8 +168,8 @@ router.get('/search', async(req:Request, res:Response) => {
         const anyClassFound = await prismaClient.class.findMany({where:{
                 OR:[
                     {id:query.toString()},
-                    {name:query.toString()},
-                    {description:query.toString()}
+                    {name:{contains:query.toString(), mode:'insensitive'}},
+                    {description:{contains:query.toString(), mode:'insensitive'}}
                 ]
             },
             select:{
@@ -188,8 +187,9 @@ router.get('/search', async(req:Request, res:Response) => {
                 }
             }
         })
-        if(!anyClassFound){
-            res.status(404).json({success:false, message:"No class room found"});
+        if(anyClassFound.length == 0 ){
+            res.status(404).json({success:false, message:"No class room found with related searched query"});
+            return;
         }
 
         res.status(200).json({success:true, message:"Class rooms found", anyClassFound})
