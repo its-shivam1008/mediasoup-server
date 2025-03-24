@@ -94,6 +94,15 @@ router.post('/join-request', async(req:Request, res:Response)=>{
             return;
         }
 
+        const isJoinRequestAlreadyExist = await prismaClient.classJoinRequest.findMany({
+            where:{studentId:user.id, classId:data.clasId}
+        })
+
+        if(isJoinRequestAlreadyExist){
+            res.status(400).json({success:false, message:"You have already requested to join this class"});
+            return;
+        }
+
         if(classRoom.passcode != data.passcode){
             res.status(400).json({success:false, message:"Wrong passcode provided"});
             return;
