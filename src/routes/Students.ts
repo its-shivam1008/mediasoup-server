@@ -98,7 +98,7 @@ router.post('/join-request', async(req:Request, res:Response)=>{
             where:{studentId:user.id, classId:data.clasId}
         })
 
-        if(isJoinRequestAlreadyExist){
+        if(isJoinRequestAlreadyExist.length > 0){
             res.status(400).json({success:false, message:"You have already requested to join this class"});
             return;
         }

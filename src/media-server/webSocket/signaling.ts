@@ -11,7 +11,10 @@ import { studentAuthorization } from "../../controller/StudentAuthorization";
 export const joinRoom = async ({ roomId, userId, role}:{roomId:string, userId:string, role:string}, socket:Socket, callback:JoinCallbackFunctionResponse) => {
     // roomId will be same as classId of the class(id)
     const isUserAllowedToJoin = await studentAuthorization(roomId, userId, role);
+    console.log("isUserAllowedToJoin and usrId=>",isUserAllowedToJoin, userId, roomId, role)
+    let mssg:string
     if(!isUserAllowedToJoin){
+        mssg="User not allowed to join the room";
         console.error("User not allowed");
         return callback({ error: "User not allowed to join the room" });
     }
@@ -37,10 +40,12 @@ export const joinRoom = async ({ roomId, userId, role}:{roomId:string, userId:st
 
     const existingProducerIds = Array.from(rooms[roomId].producers.keys());
     console.log(`Sending existing producers to ${socket.id} in room ${roomId}:`, existingProducerIds);
+    mssg = 'User is the part of the class room'
 
     callback({ 
         routerRtpCapabilities: rooms[roomId].router.rtpCapabilities,
-        existingProducerIds
+        existingProducerIds,
+        message:mssg
     });
 }
 

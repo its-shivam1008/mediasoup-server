@@ -5,7 +5,7 @@ export const studentAuthorization:StudentAuthorization = async (classId, userId,
     try{
         if(role === 'TEACHER') return true;
         const studentEnroll = await prismaClient.classEnrollment.findMany({where:{classId:classId, studentId:userId}});
-        if(!studentEnroll) return false;
+        if(studentEnroll.length == 0) return false;
         return true;
     }catch(err){
         console.error("Some error occured ", err);

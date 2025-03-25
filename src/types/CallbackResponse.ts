@@ -5,6 +5,7 @@ import { DtlsParameters, IceCandidate, IceParameters } from "mediasoup/node/lib/
 interface JoinCallbackSuccessResponse{
     routerRtpCapabilities: RtpCapabilities;
     existingProducerIds:string[];
+    message?:string;
 }
 
 interface JoinCallbackErrorResponse{
