@@ -179,7 +179,7 @@ router.put('/enroll-student', async(req:Request, res:Response)=>{
 
 router.delete('/enroll-student', async(req:Request, res:Response)=>{
     try{
-        const data = req.body;
+        const data = req.query;
 
         const user = req.user;
         if(user.role != 'TEACHER'){
@@ -187,7 +187,7 @@ router.delete('/enroll-student', async(req:Request, res:Response)=>{
             return;
         }
 
-        const removeStuFromEnrollClass = await prismaClient.classEnrollment.deleteMany({where:{classId:data.classId, studentId:data.studentId}});
+        const removeStuFromEnrollClass = await prismaClient.classEnrollment.deleteMany({where:{classId:data.classId?.toString(), studentId:data.studentId?.toString()}});
 
         if(!removeStuFromEnrollClass){
             res.status(400).json({message:"Unable to remove the student from the class room"});
@@ -202,7 +202,7 @@ router.delete('/enroll-student', async(req:Request, res:Response)=>{
 
 router.delete('/join-request', async(req:Request, res:Response)=>{
     try{
-        const data = req.body;
+        const data = req.query;
 
         const user = req.user;
         if(user.role != 'TEACHER'){
@@ -210,7 +210,7 @@ router.delete('/join-request', async(req:Request, res:Response)=>{
             return;
         }
 
-        const removeStuFromClassJoinRequest = await prismaClient.classJoinRequest.deleteMany({where:{classId:data.classId, studentId:data.studentId}});
+        const removeStuFromClassJoinRequest = await prismaClient.classJoinRequest.deleteMany({where:{classId:data.classId?.toString(), studentId:data.studentId?.toString()}});
 
         if(!removeStuFromClassJoinRequest){
             res.status(400).json({message:"Unable to remove join request"});
