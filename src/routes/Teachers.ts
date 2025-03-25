@@ -223,5 +223,77 @@ router.delete('/join-request', async(req:Request, res:Response)=>{
     }
 });
 
+router.get('/join-request', async(req:Request, res:Response) => {
+    try{
+        const classId = req.query.classId;
+        const user = req.user;
+        if(user.role != 'TEACHER'){
+            res.status(405).json({success:false, message:"Not allowed, the user is not teacher"});
+            return;
+        }
+
+        const joinRequestClasses = await prismaClient.classJoinRequest.findMany({
+            where:{classId:classId?.toString()},
+            include: {
+                student:{
+                    select:{
+                        user:{
+                            select:{
+                                name:true,
+                                email:true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if(!joinRequestClasses){
+            res.status(400).json({success:false, message:"No join requests"});
+            return;
+        }
+
+        res.status(200).json({success:true, message:"Classes you requested to join are fetched", classes:joinRequestClasses});
+
+    }catch(err){
+        res.status(500).json({success:false, message:"Internal server error"});
+    }
+});
+
+router.get('/enroll-classes', async(req:Request, res:Response) => {
+    try{
+        const classId = req.query.classId;
+        const user = req.user;
+        if(user.role != 'TEACHER'){
+            res.status(405).json({success:false, message:"Not allowed, the user is not teacher"});
+            return;
+        }
+
+        const enrollClasses = await prismaClient.classEnrollment.findMany({
+            where:{classId:classId?.toString()},
+            include:{
+                student:{
+                    select:{
+                        user:{
+                            select:{
+                                name:true,
+                                email:true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        if(!enrollClasses){
+            res.status(400).json({success:false, message:"No enrolled classes"});
+            return;
+        }
+
+        res.status(200).json({success:true, message:"Classes you requested to join are fetched", classes:enrollClasses});
+    }catch(err){
+        res.status(500).json({success:false, message:"Internal server error"});
+    }
+});
+
 
 export default router;
