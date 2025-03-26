@@ -7,6 +7,11 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
+#docker
+docker-compose.yml
+Dockerfile
+.dockerignore
+
 # build folder of typescript
 build/
 
