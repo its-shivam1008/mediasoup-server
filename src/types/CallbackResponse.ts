@@ -17,11 +17,17 @@ export type JoinCallbackResponse = JoinCallbackSuccessResponse | JoinCallbackErr
 export type JoinCallbackFunctionResponse = (response: JoinCallbackResponse) => void;
 
 
+interface Urls {
+    urls:string;
+}
+
+
 interface CreateTransportCallbackSuccessResponse{
     id:string;
     iceParameters: IceParameters;
     iceCandidates: IceCandidate[];
     dtlsParameters: DtlsParameters;
+    iceServers: Urls[];
 }
 
 interface CreateTransportCallbackErrorResponse{

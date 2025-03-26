@@ -53,6 +53,15 @@ export const createTransport = async ({ roomId }:{roomId:string}, socket:Socket,
     const room = rooms[roomId];
     if (!room) return;
 
+    const stunServer = {
+        iceServers: [
+            { urls: "stun:stun.1.google.com:19302" },
+            { urls: "stun:stun1.1.google.com:19302" },
+            { urls: "stun:stun2.1.google.com:19302" },
+            { urls: "stun:stun3.1.google.com:19302" }
+        ]
+    }
+
     const transport = await room.router.createWebRtcTransport({
         listenIps: [{ ip: "0.0.0.0", announcedIp: `${process.env.ANNOUNCE_IP}` }],
         enableUdp: true,
@@ -66,6 +75,7 @@ export const createTransport = async ({ roomId }:{roomId:string}, socket:Socket,
         iceParameters: transport.iceParameters,
         iceCandidates: transport.iceCandidates,
         dtlsParameters: transport.dtlsParameters,
+        iceServers: stunServer.iceServers
     });
 }
 
