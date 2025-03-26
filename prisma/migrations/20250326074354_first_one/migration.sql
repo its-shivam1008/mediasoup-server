@@ -1,30 +1,5 @@
-/*
-  Warnings:
-
-  - The primary key for the `students` table will be changed. If it partially fails, the table could be left without primary key constraint.
-  - You are about to drop the column `email` on the `students` table. All the data in the column will be lost.
-  - You are about to drop the column `first_name` on the `students` table. All the data in the column will be lost.
-  - You are about to drop the column `id` on the `students` table. All the data in the column will be lost.
-  - You are about to drop the column `last_name` on the `students` table. All the data in the column will be lost.
-  - You are about to drop the column `password` on the `students` table. All the data in the column will be lost.
-  - The required column `user_id` was added to the `students` table with a prisma-level default value. This is not possible if the table is not empty. Please add this column as optional, then populate it before making it required.
-
-*/
 -- CreateEnum
 CREATE TYPE "UserRole" AS ENUM ('STUDENT', 'TEACHER');
-
--- DropIndex
-DROP INDEX "students_email_key";
-
--- AlterTable
-ALTER TABLE "students" DROP CONSTRAINT "students_pkey",
-DROP COLUMN "email",
-DROP COLUMN "first_name",
-DROP COLUMN "id",
-DROP COLUMN "last_name",
-DROP COLUMN "password",
-ADD COLUMN     "user_id" TEXT NOT NULL,
-ADD CONSTRAINT "students_pkey" PRIMARY KEY ("user_id");
 
 -- CreateTable
 CREATE TABLE "users" (
@@ -33,8 +8,18 @@ CREATE TABLE "users" (
     "role" "UserRole" NOT NULL DEFAULT 'STUDENT',
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
+    "verifyCode" TEXT NOT NULL,
+    "isVerified" BOOLEAN NOT NULL,
+    "verifyCodeExpiry" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "students" (
+    "user_id" TEXT NOT NULL,
+
+    CONSTRAINT "students_pkey" PRIMARY KEY ("user_id")
 );
 
 -- CreateTable
