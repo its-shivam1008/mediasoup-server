@@ -17,7 +17,7 @@ dotenv.config();
 
 const app = express();
 app.use(cors({
-    origin: `${process.env.CLIENT_URL}`,
+    origin: "*",
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
@@ -38,7 +38,7 @@ const server = http.createServer(app);
 
 export const io = new socketIo(server, {
     cors: {
-        origin: `${process.env.CLIENT_URL}`,
+        origin: "*",
         methods: ["GET", "POST"],
         credentials: true
     },
