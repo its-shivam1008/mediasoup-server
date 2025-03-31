@@ -28,13 +28,13 @@ const comparePasssword = async (candidatePassword:string, userPassword:string)=>
     }
 }
 
-router.get('/', async(req, res) => {
+router.get('/', async(req:Request, res:Response) => {
     res.status(200).send("Hellow from users");
 });
 
 // isVerrified, verifyCode, verifyCodeExpiry
 
-router.post('/signup', async(req, res) => {
+router.post('/signup', async(req:Request, res:Response) => {
     try{
         const data:any = req.body;
 
