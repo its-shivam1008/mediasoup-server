@@ -19,7 +19,7 @@ const PORT = process.env.PORT || 5000;
 
 const app = express();
 app.use(cors({
-    origin: "*",
+    origin: `${process.env.CLIENT_URL}`,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
@@ -40,7 +40,7 @@ const server = http.createServer(app);
 
 export const io = new socketIo(server, {
     cors: {
-        origin: "*",
+        origin: `${process.env.CLIENT_URL}`,
         methods: ["GET", "POST"],
         credentials: true
     },
