@@ -4,7 +4,7 @@
   "description": "This is media soup backend server made with express to support multiple device connect through webRTC",
   "main": "index.js",
   "scripts": {
-    "build":"tsc",
+    "build":"tsc  --onSuccess \" npm start\"",
     "start": "node build/server.js",
     "nodemon": "nodemon server.js",
     "dev": "tsc-watch --onSuccess \" npm start\""
