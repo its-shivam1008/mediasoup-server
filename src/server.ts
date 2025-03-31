@@ -15,6 +15,8 @@ import { jwtAuthMiddleware } from "./middlewares/JwtAuthMiddleware";
 
 dotenv.config();
 
+const PORT = process.env.PORT || 5000;
+
 const app = express();
 app.use(cors({
     origin: "*",
@@ -80,6 +82,6 @@ createWorkerFunc().then(() => {
 });
 
 
-server.listen(5000, () => {
-    console.log("Server running on http://localhost:5000");
+server.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
 });
