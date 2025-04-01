@@ -74,7 +74,7 @@ router.post('/signup', async(req:Request, res:Response) => {
             id:response.id,
             email:response.email,
             role:response.role,
-            isVerified:response.isVerified
+            isVerified:false
         }
         const token = generateToken(payload);
 
@@ -113,7 +113,7 @@ router.post('/login', async(req:Request, res:Response) =>{
             id:response.id,
             email:response.email,
             role:response.role,
-            isVerified:response.isVerified
+            isVerified:true
         }
         const token = generateToken(payload);
         res.status(200).json({message:"User logged in", success:true, token});
