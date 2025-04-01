@@ -12,6 +12,7 @@ import { Socket, Server as socketIo } from "socket.io";
 import { connectTransport, consume, createTransport, disconnect, exitRoom, joinRoom, produce } from "./media-server/webSocket/signaling";
 import { jwtAuthMiddleware } from "./middlewares/JwtAuthMiddleware";
 import os from "os";
+import { prismaClient } from "./lib/db";
 
 export let announceIpAddress:any = null;
 
@@ -32,6 +33,17 @@ getServerIp();
 
 
 dotenv.config();
+
+const isDbConnectionSuccessful = async () => {
+    try {
+        await prismaClient.$connect();
+        console.log("Database connected 🆗");
+    } catch (err) {
+        console.error("Prisma Connection error ❌", err);
+    }
+}
+
+isDbConnectionSuccessful();
 
 const PORT = process.env.PORT || 5000;
 
