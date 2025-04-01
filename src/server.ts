@@ -11,6 +11,24 @@ import { createWorkerFunc } from "./media-server/mediasoupWorker";
 import { Socket, Server as socketIo } from "socket.io";
 import { connectTransport, consume, createTransport, disconnect, exitRoom, joinRoom, produce } from "./media-server/webSocket/signaling";
 import { jwtAuthMiddleware } from "./middlewares/JwtAuthMiddleware";
+import os from "os";
+
+export let announceIpAddress:any = null;
+
+const getServerIp = () => {
+    const networkInterfaces:any = os.networkInterfaces();
+    for(let interfaceName in networkInterfaces){
+        for(let net of networkInterfaces[interfaceName]){
+            if(net.family === 'IPv4' && net.internal){
+                console.log("server ip is: "+net.address);
+                announceIpAddress = net.address;
+                console.log("Announce ip is: "+announceIpAddress);
+            }
+        }
+    }
+}
+
+getServerIp();
 
 
 dotenv.config();

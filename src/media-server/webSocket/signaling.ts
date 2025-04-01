@@ -6,6 +6,7 @@ import { DtlsParameters } from "mediasoup/node/lib/WebRtcTransportTypes";
 import { Room, RoomUser } from "../../types/Rooms";
 import { MediaKind, RtpCapabilities, RtpParameters } from "mediasoup/node/lib/rtpParametersTypes";
 import { studentAuthorization } from "../../controller/StudentAuthorization";
+import { announceIpAddress } from "../../server";
 
 
 export const joinRoom = async ({ roomId, userId, role}:{roomId:string, userId:string, role:string}, socket:Socket, callback:JoinCallbackFunctionResponse) => {
@@ -63,7 +64,7 @@ export const createTransport = async ({ roomId }:{roomId:string}, socket:Socket,
     }
 
     const transport = await room.router.createWebRtcTransport({
-        listenIps: [{ ip: "0.0.0.0", announcedIp: `${process.env.ANNOUNCE_IP}` }],
+        listenIps: [{ ip: "0.0.0.0", announcedIp: `${announceIpAddress}` }],
         enableUdp: true,
         enableTcp: true,
     });
