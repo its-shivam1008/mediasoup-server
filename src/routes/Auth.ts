@@ -196,13 +196,5 @@ router.get('/auth/me', jwtAuthMiddleware, async(req:Request, res:Response)=>{
     }
 });
 
-router.post('/logout', async(req:Request, res:Response)=>{
-    try{
-        res.clearCookie("uid"); // Remove token cookie
-        res.status(200).json({ success: true, message: "Logged out" });
-    }catch(err){
-        res.status(500).json({success:false, message:"Internal server error"});
-    }
-})
 
 export default router;
