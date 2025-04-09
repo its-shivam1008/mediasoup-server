@@ -94,6 +94,15 @@ router.post('/join-request', async(req:Request, res:Response)=>{
             return;
         }
 
+        const isAlreadyEnrolled = await prismaClient.classEnrollment.findMany({
+            where:{studentId:user.id, classId:data.classId}
+        })
+
+        if(isAlreadyEnrolled.length > 0) {
+            res.status(400).json({success:false, message:"You are enrolled in this class room"});
+            return;
+        }
+
         const isJoinRequestAlreadyExist = await prismaClient.classJoinRequest.findMany({
             where:{studentId:user.id, classId:data.clasId}
         })
