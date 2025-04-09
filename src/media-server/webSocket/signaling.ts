@@ -64,7 +64,7 @@ export const createTransport = async ({ roomId }:{roomId:string}, socket:Socket,
     }
 
     const transport = await room.router.createWebRtcTransport({
-        listenIps: [{ ip: "0.0.0.0", announcedIp: `${announceIpAddress}` }],
+        listenIps: [{ ip: "0.0.0.0", announcedIp: `${process.env.ANNOUNCE_IP}` }],
         enableUdp: true,
         enableTcp: true,
     });

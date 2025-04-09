@@ -104,7 +104,7 @@ router.post('/join-request', async(req:Request, res:Response)=>{
         }
 
         const isJoinRequestAlreadyExist = await prismaClient.classJoinRequest.findMany({
-            where:{studentId:user.id, classId:data.clasId}
+            where:{studentId:user.id, classId:data.classId}
         })
 
         if(isJoinRequestAlreadyExist.length > 0){
