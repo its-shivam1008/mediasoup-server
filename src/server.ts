@@ -29,6 +29,7 @@ const getServerIp = () => {
     }
 }
 
+console.log(`.env Announce IP => ${process.env.ANNOUNCE_IP}`)
 getServerIp();
 
 
