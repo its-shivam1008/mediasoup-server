@@ -40,7 +40,7 @@ export const joinRoom = async ({ roomId, userId, role}:{roomId:string, userId:st
     socket.join(roomId);
 
     const existingProducerIds = Array.from(rooms[roomId].producers.keys());
-    console.log(`Sending existing producers to ${socket.id} in room ${roomId}:`, existingProducerIds);
+    //console.log(`Sending existing producers to ${socket.id} in room ${roomId}:`, existingProducerIds);
     mssg = 'User is the part of the class room'
 
     callback({ 
@@ -99,9 +99,9 @@ export const produce = async ({ roomId, transportId, kind, rtpParameters }:{ roo
     room.users[socket.id].producers.push(producer);
     room.producers.set(producer.id, socket.id);
 
-    console.log(`✅ New Producer Created: ${producer.id}`);
+    //console.log(`✅ New Producer Created: ${producer.id}`);
     socket.to(roomId).emit("newProducer", producer.id);
-    console.log("🚀 Broadcasting new producer:", producer.id, "-to room-", roomId);
+    //console.log("🚀 Broadcasting new producer:", producer.id, "-to room-", roomId);
     callback({ id: producer.id });
 }
 
@@ -137,13 +137,13 @@ export const exitRoom = ({ roomId, producerIds }:{ roomId:string, producerIds:st
     const room = rooms[roomId];
     if (!room) return;
 
-    console.log(`User ${socket.id} exiting room ${roomId} with producers:`, producerIds);
+    //console.log(`User ${socket.id} exiting room ${roomId} with producers:`, producerIds);
 
     // Notify other clients in the room about each producer that’s leaving
     producerIds.forEach((producerId:string) => {
         socket.to(roomId).emit("participantLeft", producerId);
         room.producers.delete(producerId); // Clean up producer from room
-        console.log(`Notified room ${roomId} that producer ${producerId} left`);
+        //console.log(`Notified room ${roomId} that producer ${producerId} left`);
     });
 
     // Clean up user data
@@ -156,12 +156,12 @@ export const exitRoom = ({ roomId, producerIds }:{ roomId:string, producerIds:st
     socket.leave(roomId);
     if (Object.keys(room.users).length === 0) {
         delete rooms[roomId];
-        console.log(`Room ${roomId} deleted as it is now empty`);
+        //console.log(`Room ${roomId} deleted as it is now empty`);
     }
 }
 
 export const disconnect = (socket:Socket) => {
-    console.log(`User disconnected: ${socket.id}`);
+    //console.log(`User disconnected: ${socket.id}`);
     for (const roomId in rooms) {
         const room = rooms[roomId];
         if (room && room.users[socket.id]) {
@@ -170,7 +170,7 @@ export const disconnect = (socket:Socket) => {
             producerIds.forEach((producerId) => {
                 socket.to(roomId).emit("participantLeft", producerId);
                 room.producers.delete(producerId);
-                console.log(`Notified room ${roomId} that producer ${producerId} left due to disconnect`);
+                //console.log(`Notified room ${roomId} that producer ${producerId} left due to disconnect`);
             });
 
             // Clean up user resources
@@ -182,7 +182,7 @@ export const disconnect = (socket:Socket) => {
             // Delete room if empty
             if (Object.keys(room.users).length === 0) {
                 delete rooms[roomId];
-                console.log(`Room ${roomId} deleted as it is now empty`);
+                //console.log(`Room ${roomId} deleted as it is now empty`);
             }
         }
     }
