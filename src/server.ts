@@ -9,7 +9,7 @@ import student from "./routes/Students";
 import teacher from "./routes/Teachers";
 import { createWorkerFunc } from "./media-server/mediasoupWorker";
 import { Socket, Server as socketIo } from "socket.io";
-import { connectTransport, consume, createTransport, disconnect, exitRoom, joinRoom, produce } from "./media-server/webSocket/signaling";
+import { connectTransport, consume, createTransport, disconnect, exitRoom, joinRoom, messageInRoom, produce } from "./media-server/webSocket/signaling";
 import { jwtAuthMiddleware } from "./middlewares/JwtAuthMiddleware";
 import os from "os";
 import { prismaClient } from "./lib/db";
@@ -101,6 +101,10 @@ createWorkerFunc().then(() => {
         socket.on("consume", async ({ roomId, producerId, transportId, rtpCapabilities }, callback) =>{
             await consume({ roomId, producerId, transportId, rtpCapabilities }, socket, callback);
         });
+
+        socket.on('message', async ({roomId}, callback) => {
+            await messageInRoom({roomId}, socket, callback);
+        })
     
         socket.on("exitRoom", ({ roomId, producerIds })=>{
             exitRoom({ roomId, producerIds }, socket);

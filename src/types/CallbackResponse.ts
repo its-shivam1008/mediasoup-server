@@ -64,3 +64,16 @@ interface ConsumeCallbackErrorResponse{
 export type ConsumeCallbackResponse = ConsumeCallbackSuccessResponse | ConsumeCallbackErrorResponse;
 
 export type ConsumeCallbackFunctionResponse = (response: ConsumeCallbackResponse) => void;
+
+interface MessageCallbackSuccessResponse{
+    roomId:string;
+    message:string;
+}
+
+interface MessageCallbackErrorResponse{
+    error:string;
+}
+
+export type MessageCallbackResponse = MessageCallbackSuccessResponse | MessageCallbackErrorResponse;
+
+export type MessageCallbackFunctionResponse = (response: MessageCallbackResponse) => void;

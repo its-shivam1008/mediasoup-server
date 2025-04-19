@@ -1,6 +1,6 @@
 // import { io } from "../server";
 import { Socket } from "socket.io";
-import { JoinCallbackFunctionResponse, CreateTransportCallbackFunctionResponse, ProduceCallbackFunctionResponse, ConsumeCallbackFunctionResponse } from "../../types/CallbackResponse";
+import { JoinCallbackFunctionResponse, CreateTransportCallbackFunctionResponse, ProduceCallbackFunctionResponse, ConsumeCallbackFunctionResponse, MessageCallbackFunctionResponse } from "../../types/CallbackResponse";
 import { rooms, worker} from "../mediasoupWorker";
 import { DtlsParameters } from "mediasoup/node/lib/WebRtcTransportTypes";
 import { Room, RoomUser } from "../../types/Rooms";
@@ -130,6 +130,10 @@ export const consume = async ({ roomId, producerId, transportId, rtpCapabilities
         kind: consumer.kind,
         rtpParameters: consumer.rtpParameters,
     });
+}
+
+export const messageInRoom = async({roomId}:{roomId:string}, socket:Socket, callback:MessageCallbackFunctionResponse)=>{
+
 }
 
 // producerIds is string[](array here) defined by me.
