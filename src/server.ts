@@ -80,7 +80,7 @@ export const io = new socketIo(server, {
 
 createWorkerFunc().then(() => {
     io.on("connection", (socket: Socket) => {
-        console.log(`User connected: ${socket.id}`);
+        // console.log(`User connected: ${socket.id}`);
     
         socket.on("joinRoom", async ({ roomId, userId, role}, callback) => {
             await joinRoom({ roomId, userId, role}, socket, callback); // userId and role added
@@ -102,8 +102,8 @@ createWorkerFunc().then(() => {
             await consume({ roomId, producerId, transportId, rtpCapabilities }, socket, callback);
         });
 
-        socket.on('message', async ({roomId}, callback) => {
-            await messageInRoom({roomId}, socket, callback);
+        socket.on('message', async ({roomId, message, username, role}) => {
+            await messageInRoom({roomId, message, username, role}, socket);
         })
     
         socket.on("exitRoom", ({ roomId, producerIds })=>{

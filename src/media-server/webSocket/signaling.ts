@@ -1,6 +1,6 @@
 // import { io } from "../server";
 import { Socket } from "socket.io";
-import { JoinCallbackFunctionResponse, CreateTransportCallbackFunctionResponse, ProduceCallbackFunctionResponse, ConsumeCallbackFunctionResponse, MessageCallbackFunctionResponse } from "../../types/CallbackResponse";
+import { JoinCallbackFunctionResponse, CreateTransportCallbackFunctionResponse, ProduceCallbackFunctionResponse, ConsumeCallbackFunctionResponse } from "../../types/CallbackResponse";
 import { rooms, worker} from "../mediasoupWorker";
 import { DtlsParameters } from "mediasoup/node/lib/WebRtcTransportTypes";
 import { Room, RoomUser } from "../../types/Rooms";
@@ -12,16 +12,16 @@ import { announceIpAddress } from "../../server";
 export const joinRoom = async ({ roomId, userId, role}:{roomId:string, userId:string, role:string}, socket:Socket, callback:JoinCallbackFunctionResponse) => {
     // roomId will be same as classId of the class(id)
     const isUserAllowedToJoin = await studentAuthorization(roomId, userId, role);
-    console.log("isUserAllowedToJoin and usrId=>",isUserAllowedToJoin, userId, roomId, role)
+    //console.log("isUserAllowedToJoin and usrId=>",isUserAllowedToJoin, userId, roomId, role)
     let mssg:string
     if(!isUserAllowedToJoin){
         mssg="User not allowed to join the room";
-        console.error("User not allowed");
+        //console.error("User not allowed");
         return callback({ error: "User not allowed to join the room" });
     }
     // 
     if (!worker) {
-        console.error("❌ Worker is not initialized yet!");
+        //console.error("❌ Worker is not initialized yet!");
         return callback({ error: "Mediasoup worker is not ready" });
     }
     if (!rooms[roomId]) {
@@ -132,8 +132,9 @@ export const consume = async ({ roomId, producerId, transportId, rtpCapabilities
     });
 }
 
-export const messageInRoom = async({roomId}:{roomId:string}, socket:Socket, callback:MessageCallbackFunctionResponse)=>{
-
+export const messageInRoom = async({roomId, message, username, role}:{roomId:string, message:string, username:string, role:string}, socket:Socket)=>{
+    socket.to(roomId).emit("receiveMessage", {message, username, role});
+    // console.log("messaeg >", message," room >", roomId);
 }
 
 // producerIds is string[](array here) defined by me.
